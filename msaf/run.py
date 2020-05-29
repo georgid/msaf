@@ -153,13 +153,17 @@ def run_flat(file_struct, bounds_module, labels_module, frame_times, config,
 
         # Label segments
         if labels_module is not None:
-            if len(est_idxs) == 2:
+            if len(est_idxs) == 2: # two segents only - no need of clustering
                 est_labels = np.array([0])
+                wfmcs = np.arange(2 * len(est_labels)).reshape(len(est_labels),
+                                                                     2)  # dummy to satisfy output of method
+
             else:
                 S = labels_module.Segmenter(file_struct,
                                             in_bound_idxs=est_idxs,
                                             **config)
-                est_labels = S.processFlat()[1]
+                _, est_labels, wfmcs = S.processFlat()
+
 
     # Make sure the first and last boundaries are included
     if bounds_module: # assume that for ground truth boundaries first and last are included
@@ -220,10 +224,10 @@ def run_algorithms(file_struct, boundaries_id, labels_id, config,
 
     # Segment audio based on type of segmentation
     run_fun = run_hierarchical if config["hier"] else run_flat
-    est_times, est_labels = run_fun(file_struct, bounds_module, labels_module,
+    est_times, est_labels, wfmcs = run_fun(file_struct, bounds_module, labels_module,
                                     frame_times, config, annotator_id)
 
-    return est_times, est_labels
+    return est_times, est_labels, wfmcs
 
 
 def process_track(file_struct, boundaries_id, labels_id, config,
@@ -348,7 +352,7 @@ def process(in_path, annot_beats=False, feature="pcp", framesync=False,
             feature, file_struct, annot_beats, framesync)
 
         # And run the algorithms
-        est_times, est_labels = run_algorithms(file_struct, boundaries_id,
+        est_times, est_labels, wfmcs = run_algorithms(file_struct, boundaries_id,
                                                labels_id, config,
                                                annotator_id=annotator_id)
 
@@ -367,7 +371,7 @@ def process(in_path, annot_beats=False, feature="pcp", framesync=False,
         io.save_estimations(file_struct, est_times, est_labels,
                             boundaries_id, labels_id, **config)
 
-        return est_times, est_labels
+        return est_times, est_labels, wfmcs
     else:
         # Collection mode
         file_structs = io.get_dataset_files(in_path)
