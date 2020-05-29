@@ -109,7 +109,7 @@ def compute_labels_kmeans(fmcs, k):
     kmeans = KMeans(n_clusters=k, n_init=100)
     kmeans.fit(wfmcs)
 
-    return kmeans.labels_
+    return kmeans.labels_,wfmcs
 
 
 def compute_similarity(F, bound_idxs, dirichlet=False, xmeans=False, k=5,
@@ -163,9 +163,9 @@ def compute_similarity(F, bound_idxs, dirichlet=False, xmeans=False, k=5,
         labels_est = compute_labels_kmeans(fmcs, k=k)
         # print("Estimated with Xmeans:", k)
     else:
-        labels_est = compute_labels_kmeans(fmcs, k=k)
+        labels_est, wfmcs = compute_labels_kmeans(fmcs, k=k)
 
-    return labels_est
+    return labels_est, wfmcs
 
 
 class Segmenter(SegmenterInterface):
@@ -196,7 +196,7 @@ class Segmenter(SegmenterInterface):
                         min_db=self.config["label_norm_min_db"])
 
         # Find the labels using 2D-FMCs
-        est_labels = compute_similarity(F, self.in_bound_idxs,
+        est_labels, wfmcs = compute_similarity(F, self.in_bound_idxs,
                                         dirichlet=self.config["dirichlet"],
                                         xmeans=self.config["xmeans"],
                                         k=self.config["k"],
@@ -206,4 +206,4 @@ class Segmenter(SegmenterInterface):
         self.in_bound_idxs, est_labels = self._postprocess(self.in_bound_idxs,
                                                            est_labels)
 
-        return self.in_bound_idxs, est_labels
+        return self.in_bound_idxs, est_labels, wfmcs
