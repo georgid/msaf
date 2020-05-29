@@ -141,6 +141,8 @@ def run_flat(file_struct, bounds_module, labels_module, frame_times, config,
                 # Ground-truth boundaries
                 est_times, est_labels = io.read_references(
                     file_struct.audio_file, annotator_id=annotator_id)
+                if est_times[-1] != config["features"].dur:  # add end-time boundary
+                    est_times = np.append(est_times, config["features"].dur)
                 est_idxs = io.align_times(est_times, frame_times)
                 if est_idxs[0] != 0:
                     est_idxs = np.concatenate(([0], est_idxs))
