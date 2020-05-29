@@ -160,9 +160,16 @@ def run_flat(file_struct, bounds_module, labels_module, frame_times, config,
                 est_labels = S.processFlat()[1]
 
     # Make sure the first and last boundaries are included
-    est_times, est_labels = utils.process_segmentation_level(
-        est_idxs, est_labels, features.shape[0], frame_times,
-        config["features"].dur)
+    if bounds_module: # assume that for ground truth boundaries first and last are included
+        est_times, est_labels = utils.process_segmentation_level(
+                est_idxs, est_labels, features.shape[0], frame_times,
+                config["features"].dur)
+    else:
+        est_times = np.array(est_times)
+
+    return est_times, est_labels, wfmcs
+
+
 
     return est_times, est_labels
 
